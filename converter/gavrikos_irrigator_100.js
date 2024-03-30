@@ -50,8 +50,9 @@ configure: async (device, coordinatorEndpoint, logger) => {
         await reporting.temperature(first_endpoint);
 
         },
-	exposes: [exposes.numeric('temperature', ACCESS_STATE).withUnit('�C').withDescription('Measured temperature value'), e.switch(),
-		e.numeric('measurement_period', ACCESS_STATE | ACCESS_WRITE | ACCESS_READ).withDescription('Measurement Period').withValueMin(0).withValueMax(600)
+	exposes: [
+            exposes.numeric('temperature', ACCESS_STATE).withUnit('�C').withDescription('Measured temperature value'), 
+            e.switch()
 		]
 };
 
