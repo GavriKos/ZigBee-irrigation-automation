@@ -11,6 +11,10 @@
 #define ESP_ZB_PRIMARY_CHANNEL_MASK     ESP_ZB_TRANSCEIVER_ALL_CHANNELS_MASK  /* Zigbee primary channel mask use in the example */
 #define SENSOR_ENDPOINT 1
 
+#define MANUFACTURER_NAME "Gavrikos"
+#define MODEL_NAME "Irrigator 1.0"
+#define FIRMWARE_VERSION "1.0"
+
 #define ENGINE_PIN GPIO_NUM_5
 #define SOIL_HUMIDITY_PIN ADC1_CHANNEL_3
 #define MEATHURE_INTERVAL 5000
@@ -18,6 +22,8 @@
 #define SOIL_HUMIDITY_ZIGBEE_MIN 2500
 #define SOIL_HUMIDITY_ZIGBEE_MAX 3500
 #define SOIL_HUMIDITY_PIN_MAX 3000.0
+
+#define HARD_RESET_PIN 0
 
 #define ESP_ZB_ZED_CONFIG()                                         \
     {                                                               \
@@ -43,3 +49,4 @@
 uint16_t soilHumidityValue = 0;
 static const char *TAG = "device";
 static bool isZigBeeConnected = false;
+static char manufacturer[16], model[16], firmware_version[16];
