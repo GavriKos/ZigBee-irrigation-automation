@@ -36,10 +36,10 @@ const tz_local = {
 
 
 const definition = {
-    zigbeeModel: ['Air Sensor 1.0'],
-    model: 'Air Sensor 1.0',
-    vendor: 'Lmahmutov',
-    description: 'My super switch!',
+    zigbeeModel: ['Irrigator 1.0'],
+    model: 'Irrigator 1.0',
+    vendor: 'Gavrikos',
+    description: 'Irrigator 1.0',
 	supports: 'temperature,genBasic', 
 	fromZigbee: [fz.temperature],                                                                                       
     toZigbee: [tz.on_off, tz_local.se_metering],
