@@ -12,27 +12,6 @@ const ZCL_DATATYPE_UINT32 = 0x23;
 const ZCL_DATATYPE_UINT48 = 0x25;
 
 
-const tz_local = {
-    se_metering: {
-        key: ['measurement_period'],
-        convertSet: async (entity, key, value, meta) => {
-            value *= 1;
-            const payloads = {
-                measurement_period: ['seMetering', {0XF002: {value, type: ZCL_DATATYPE_UINT16}}],
-            };
-            await entity.write(payloads[key][0], payloads[key][1]);
-            return {
-                state: {[key]: value},
-            };
-        },
-        convertGet: async (entity, key, meta) => {
-            const payloads = {
-                measurement_period: ['seMetering', 0XF002],
-            };
-            await entity.read(payloads[key][0], [payloads[key][1]]);
-        },
-    },
-};
 
 
 const definition = {
@@ -40,18 +19,18 @@ const definition = {
     model: 'Irrigator 1.0',
     vendor: 'Gavrikos',
     description: 'Irrigator 1.0',
-	supports: 'temperature,genBasic', 
-	fromZigbee: [fz.temperature],                                                                                       
-    toZigbee: [tz.on_off, tz_local.se_metering],
+	supports: 'humidity,genBasic', 
+	fromZigbee: [fz.humidity],                                                                                       
+    toZigbee: [tz.on_off],
 configure: async (device, coordinatorEndpoint, logger) => {
         const first_endpoint = device.getEndpoint(1);
-        await reporting.bind(first_endpoint, coordinatorEndpoint, ['genBasic', 'msTemperatureMeasurement', 'genOnOff']);
+        await reporting.bind(first_endpoint, coordinatorEndpoint, ['genBasic', 'msRelativeHumidity', 'genOnOff']);
 		await reporting.onOff(first_endpoint);
-        await reporting.temperature(first_endpoint);
+        await reporting.humidity(first_endpoint);
 
         },
 	exposes: [
-            exposes.numeric('temperature', ACCESS_STATE).withUnit('�C').withDescription('Measured temperature value'), 
+            exposes.presets.humidity(), 
             e.switch()
 		]
 };
