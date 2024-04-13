@@ -210,7 +210,6 @@ void update_attribute()
     {
         if (isZigBeeConnected)
         {
-            soilHumidityValue = rand() % (9000 + 1 - 2000);
             esp_zb_zcl_status_t state_tmp = esp_zb_zcl_set_attribute_val(SENSOR_ENDPOINT, 
             ESP_ZB_ZCL_CLUSTER_ID_REL_HUMIDITY_MEASUREMENT, 
             ESP_ZB_ZCL_CLUSTER_SERVER_ROLE, ESP_ZB_ZCL_ATTR_REL_HUMIDITY_MEASUREMENT_VALUE_ID, &soilHumidityValue, false);
@@ -236,6 +235,40 @@ void update_attribute()
     }
 }
 
+float converter(float adc_value)
+{
+    float humidity = -100500;
+    if (adc_value >= 500 && adc_value < 1425)
+    {
+        float lerp = 1 - (adc_value - 500) / (1425 - 500);
+        humidity = 90 + lerp * (100 - 90);
+    }
+    if (adc_value >= 1425 && adc_value < 2400)
+    {
+        float lerp = 1 - (adc_value - 1425) / (2400 - 1425);
+        humidity = 30 + lerp * (90 - 30);
+    }
+    if (adc_value >= 2400 && adc_value < 3000)
+    {
+        float lerp = 1 - (adc_value - 2400) / (3000 - 2400);
+        humidity = 10 + lerp * (30 - 10);
+    }
+    if (adc_value >= 3000 && adc_value < 4000)
+    {
+        float lerp = 1 - (adc_value - 3000) / (4000 - 3000);
+        humidity = 0 + lerp * (10 - 0);
+    }
+    if (adc_value >= 4000)
+    {
+        humidity = 0;
+    }
+    if (adc_value < 500)
+    {
+        humidity = 100;
+    }
+    return humidity;
+}
+
 void update_gpio_inputs()
 {
     while(1)
@@ -243,7 +276,7 @@ void update_gpio_inputs()
         float adc_value = adc1_get_raw(ADC1_CHANNEL_3);
         if (adc_value >0)
         {
-            soilHumidityValue = SOIL_HUMIDITY_ZIGBEE_MIN + adc_value/SOIL_HUMIDITY_PIN_MAX*(SOIL_HUMIDITY_ZIGBEE_MAX-SOIL_HUMIDITY_ZIGBEE_MIN);
+            soilHumidityValue = converter(adc_value)*100;
         }
 
         ESP_LOGI(TAG, "Measure soil humidity. Adc value: %0.2f, value: %d", adc_value, (int)soilHumidityValue);
