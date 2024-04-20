@@ -273,14 +273,28 @@ void update_gpio_inputs()
 {
     while(1)
     {
+        gpio_set_level(SOIL_HUMIDITY_POWER_PIN, 1);
+        vTaskDelay(SOIL_HUMIDITY_POWER_INTERVAL/ portTICK_PERIOD_MS);
+        adc1_config_width(ADC_WIDTH_BIT_DEFAULT);
+        adc1_config_channel_atten(SOIL_HUMIDITY_PIN, ADC_ATTEN_DB_11);
         float adc_value = adc1_get_raw(ADC1_CHANNEL_3);
         if (adc_value >0)
         {
             soilHumidityValue = converter(adc_value)*100;
         }
 
-        ESP_LOGI(TAG, "Measure soil humidity. Adc value: %0.2f, value: %d", adc_value, (int)soilHumidityValue);
+        ESP_LOGE(TAG, "Measure soil humidity. Adc value: %0.2f, value: %d", adc_value, (int)soilHumidityValue);
 
+        gpio_set_level(SOIL_HUMIDITY_POWER_PIN, 0);
+
+        vTaskDelay(MEATHURE_INTERVAL / portTICK_PERIOD_MS);
+    }
+}
+
+void updateHardreset()
+{
+    while(1)
+    {
         int value = gpio_get_level(HARD_RESET_PIN);
         if (value == 0)
         {
@@ -297,6 +311,10 @@ void preparePins()
     gpio_reset_pin(ENGINE_PIN);
     gpio_set_direction(ENGINE_PIN, GPIO_MODE_OUTPUT);
     gpio_set_level(ENGINE_PIN, 0);
+
+    gpio_reset_pin(SOIL_HUMIDITY_POWER_PIN);
+    gpio_set_direction(SOIL_HUMIDITY_POWER_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_level(SOIL_HUMIDITY_POWER_PIN, 0);
 
     gpio_reset_pin(HARD_RESET_PIN);
     gpio_set_direction(HARD_RESET_PIN, GPIO_MODE_INPUT);
@@ -319,5 +337,6 @@ void app_main(void)
 
     xTaskCreate(update_attribute, "Update_attribute_value", 4096, NULL, 5, NULL);
     xTaskCreate(update_gpio_inputs, "update_gpio_inputs", 4096, NULL, 5, NULL);
+    xTaskCreate(updateHardreset, "update_gpio_inputs", 4096, NULL, 5, NULL);
     xTaskCreate(esp_zb_task, "Zigbee_main", 4096, NULL, 5, NULL);
 }
