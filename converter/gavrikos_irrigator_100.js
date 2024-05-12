@@ -20,7 +20,7 @@ const definition = {
     vendor: 'Gavrikos',
     description: 'Irrigator 1.0',
 	supports: 'humidity,genBasic', 
-	fromZigbee: [fz.humidity],                                                                                       
+	fromZigbee: [fz.humidity, fz.on_off],                                                                                       
     toZigbee: [tz.on_off],
 configure: async (device, coordinatorEndpoint, logger) => {
         const first_endpoint = device.getEndpoint(1);

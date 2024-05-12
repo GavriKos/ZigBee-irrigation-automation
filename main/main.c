@@ -81,14 +81,23 @@ void esp_zb_app_signal_handler(esp_zb_app_signal_t *signal_struct)
     }
 }
 
-
 static void Engine_stop()
 {
     vTaskDelay(ENGINE_TIMER / portTICK_PERIOD_MS);
-    bool  engine_state = 0;
+    int engine_state = 0;
     ESP_LOGI(TAG, "Engine sets to %s", engine_state ? "On" : "Off");
     gpio_set_level(ENGINE_PIN, engine_state ? 1 : 0);
+
+    if (isZigBeeConnected)
+    {
+            uint8_t onOff = 0;
+
+        esp_zb_zcl_set_attribute_val(SENSOR_ENDPOINT, ESP_ZB_ZCL_CLUSTER_ID_ON_OFF, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE, ESP_ZB_ZCL_ATTR_ON_OFF_ON_OFF_ID, &onOff, false);
+    }
+
+    vTaskDelete(NULL);
 }
+
 
 static esp_err_t zb_attribute_handler(const esp_zb_zcl_set_attr_value_message_t *message)
 {
@@ -174,17 +183,11 @@ static void esp_zb_task(void *pvParameters)
 
     /* on-off cluster create with standard cluster config*/
 // -----------------------------------------------------
-    esp_zb_on_off_cluster_cfg_t on_off_cfg;
-    on_off_cfg.on_off = ESP_ZB_ZCL_ON_OFF_ON_OFF_DEFAULT_VALUE;
-    esp_zb_attribute_list_t *esp_zb_on_off_cluster = esp_zb_on_off_cluster_create(&on_off_cfg);
+    
+    esp_zb_attribute_list_t *attr_list_on_off = esp_zb_zcl_attr_list_create(ESP_ZB_ZCL_CLUSTER_ID_ON_OFF);
 
-    // Add required attribute in On Off cluster to support "On With Timed Off" commands
-    esp_zb_on_off_cluster_add_attr(esp_zb_on_off_cluster, ESP_ZB_ZCL_ATTR_ON_OFF_ON_TIME, &undefined_value);
-    esp_zb_on_off_cluster_add_attr(esp_zb_on_off_cluster, ESP_ZB_ZCL_ATTR_ON_OFF_OFF_WAIT_TIME, &undefined_value);
-    // "On With Timed Off" commands are managed at low level in the SDK, and nothing appears at app level,
-    // so going through privilege_command to trap the "On With Timed Off" command (0x42)
-    esp_zb_zcl_add_privilege_command(SENSOR_ENDPOINT, ESP_ZB_ZCL_CLUSTER_ID_ON_OFF, 0x42);
-    esp_zb_cluster_list_add_on_off_cluster(esp_zb_cluster_list, esp_zb_on_off_cluster, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE);
+    esp_zb_on_off_cluster_add_attr(attr_list_on_off, ESP_ZB_ZCL_ATTR_ON_OFF_ON_OFF_ID, &undefined_value);
+    esp_zb_cluster_list_add_on_off_cluster(esp_zb_cluster_list, attr_list_on_off, ESP_ZB_ZCL_CLUSTER_SERVER_ROLE);
     esp_zb_ep_list_add_ep(esp_zb_ep_list, esp_zb_cluster_list, SENSOR_ENDPOINT, ESP_ZB_AF_HA_PROFILE_ID, ESP_ZB_HA_SIMPLE_SENSOR_DEVICE_ID);
 
     /* END */
