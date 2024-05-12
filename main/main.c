@@ -81,6 +81,15 @@ void esp_zb_app_signal_handler(esp_zb_app_signal_t *signal_struct)
     }
 }
 
+
+static void Engine_stop()
+{
+    vTaskDelay(ENGINE_TIMER / portTICK_PERIOD_MS);
+    bool  engine_state = 0;
+    ESP_LOGI(TAG, "Engine sets to %s", engine_state ? "On" : "Off");
+    gpio_set_level(ENGINE_PIN, engine_state ? 1 : 0);
+}
+
 static esp_err_t zb_attribute_handler(const esp_zb_zcl_set_attr_value_message_t *message)
 {
     esp_err_t ret = ESP_OK;
@@ -100,6 +109,10 @@ static esp_err_t zb_attribute_handler(const esp_zb_zcl_set_attr_value_message_t 
                 engine_state = message->attribute.data.value ? *(bool *)message->attribute.data.value : engine_state;
                 ESP_LOGI(TAG, "Engine sets to %s", engine_state ? "On" : "Off");
                 gpio_set_level(ENGINE_PIN, engine_state ? 1 : 0);
+                if (engine_state == true) 
+                {
+                    xTaskCreate(Engine_stop, "Engine_stop", 4096, NULL, 5, NULL);
+                }
                 isProceed = true;
             }
         }
