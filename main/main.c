@@ -307,7 +307,7 @@ void update_gpio_inputs()
             soilHumidityValue = converter(adc_value)*100;
         }
 
-        soilHumidityValue = rand()%9692;
+        //soilHumidityValue = rand()%9692;
 
         ESP_LOGI(TAG, "Measure soil humidity. Adc value: %0.2f, value: %d", adc_value, (int)soilHumidityValue);
 
