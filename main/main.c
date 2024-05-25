@@ -71,8 +71,16 @@ void esp_zb_app_signal_handler(esp_zb_app_signal_t *signal_struct)
         else 
         {
             ESP_LOGI(TAG, "Network steering was not successful (status: %s)", esp_err_to_name(err_status));
-            esp_zb_scheduler_alarm((esp_zb_callback_t)bdb_start_top_level_commissioning_cb, ESP_ZB_BDB_MODE_NETWORK_STEERING, 1000);
+            vTaskDelay(1000 / portTICK_PERIOD_MS); // добавьте задержку перед повторной попыткой подключения
+            esp_zb_bdb_start_top_level_commissioning(ESP_ZB_BDB_MODE_NETWORK_STEERING);
         }
+        break;
+    case ESP_ZB_ZDO_DEVICE_UNAVAILABLE:
+            esp_err_t err = esp_zb_start(false);
+                    if (err != ESP_OK) {
+                        printf("Ошибка при попытке переподключения: %d\n", err);
+                    }
+            break;
         break;
     default:
         ESP_LOGI(TAG, "ZDO signal: %s (0x%x), status: %s", esp_zb_zdo_signal_to_string(sig_type), sig_type,
@@ -299,7 +307,9 @@ void update_gpio_inputs()
             soilHumidityValue = converter(adc_value)*100;
         }
 
-        ESP_LOGE(TAG, "Measure soil humidity. Adc value: %0.2f, value: %d", adc_value, (int)soilHumidityValue);
+        soilHumidityValue = rand()%9692;
+
+        ESP_LOGI(TAG, "Measure soil humidity. Adc value: %0.2f, value: %d", adc_value, (int)soilHumidityValue);
 
         gpio_set_level(SOIL_HUMIDITY_POWER_PIN, 0);
 
@@ -320,6 +330,12 @@ void updateHardreset()
 
         vTaskDelay(MEATHURE_INTERVAL / portTICK_PERIOD_MS);
     }
+}
+
+void updateReboot()
+{
+    vTaskDelay(REBOOT_TIMER / portTICK_PERIOD_MS);
+    esp_restart();
 }
 
 void preparePins()
@@ -343,6 +359,8 @@ void app_main(void)
 {
     preparePins();
 
+    ESP_LOGW("REBOOT!: ", "REBOOT REASON: %d", esp_reset_reason());
+
     esp_zb_platform_config_t config = 
     {
         .radio_config = ESP_ZB_DEFAULT_RADIO_CONFIG(),
@@ -353,6 +371,7 @@ void app_main(void)
 
     xTaskCreate(update_attribute, "Update_attribute_value", 4096, NULL, 5, NULL);
     xTaskCreate(update_gpio_inputs, "update_gpio_inputs", 4096, NULL, 5, NULL);
-    xTaskCreate(updateHardreset, "update_gpio_inputs", 4096, NULL, 5, NULL);
+    xTaskCreate(updateHardreset, "updateHardreset", 4096, NULL, 5, NULL);
+    xTaskCreate(updateReboot, "updateReboot", 4096, NULL, 5, NULL);
     xTaskCreate(esp_zb_task, "Zigbee_main", 4096, NULL, 5, NULL);
 }
