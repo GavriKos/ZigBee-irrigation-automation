@@ -259,55 +259,24 @@ void update_attribute()
     }
 }
 
-float converter(float adc_value)
-{
-    float humidity = -100500;
-    if (adc_value >= 500 && adc_value < 1425)
-    {
-        float lerp = 1 - (adc_value - 500) / (1425 - 500);
-        humidity = 90 + lerp * (100 - 90);
-    }
-    if (adc_value >= 1425 && adc_value < 2400)
-    {
-        float lerp = 1 - (adc_value - 1425) / (2400 - 1425);
-        humidity = 30 + lerp * (90 - 30);
-    }
-    if (adc_value >= 2400 && adc_value < 3000)
-    {
-        float lerp = 1 - (adc_value - 2400) / (3000 - 2400);
-        humidity = 10 + lerp * (30 - 10);
-    }
-    if (adc_value >= 3000 && adc_value < 4000)
-    {
-        float lerp = 1 - (adc_value - 3000) / (4000 - 3000);
-        humidity = 0 + lerp * (10 - 0);
-    }
-    if (adc_value >= 4000)
-    {
-        humidity = 0;
-    }
-    if (adc_value < 500)
-    {
-        humidity = 100;
-    }
-    return humidity;
-}
-
 void update_gpio_inputs()
 {
     while(1)
     {
         gpio_set_level(SOIL_HUMIDITY_POWER_PIN, 1);
-        vTaskDelay(SOIL_HUMIDITY_POWER_INTERVAL/ portTICK_PERIOD_MS);
         adc1_config_width(ADC_WIDTH_BIT_DEFAULT);
-        adc1_config_channel_atten(SOIL_HUMIDITY_PIN, ADC_ATTEN_DB_11);
+        adc1_config_channel_atten(SOIL_HUMIDITY_PIN, ADC_ATTEN_DB_12);
+        vTaskDelay(SOIL_HUMIDITY_POWER_INTERVAL/ portTICK_PERIOD_MS);
+
         float adc_value = adc1_get_raw(ADC1_CHANNEL_3);
         if (adc_value >0)
         {
-            soilHumidityValue = converter(adc_value)*100;
+            uint16_t mesuredSoilHumidityValue = (100-(((adc_value-1100)/(2500-1100))*100))*100;
+            if (mesuredSoilHumidityValue < 10000 && mesuredSoilHumidityValue > 0)
+            {
+                soilHumidityValue= mesuredSoilHumidityValue; 
+            }
         }
-
-        //soilHumidityValue = rand()%9692;
 
         ESP_LOGI(TAG, "Measure soil humidity. Adc value: %0.2f, value: %d", adc_value, (int)soilHumidityValue);
 
