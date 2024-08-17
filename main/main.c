@@ -120,6 +120,7 @@ void esp_zb_app_signal_handler(esp_zb_app_signal_t *signal_struct)
 
 static void MesureWhileEngineOn()
 {
+    vTaskDelay(portTICK_PERIOD_MS*50);
     gpio_set_level(SOIL_HUMIDITY_POWER_PIN, 1);
     adc1_config_width(ADC_WIDTH_BIT_DEFAULT);
     adc1_config_channel_atten(SOIL_HUMIDITY_PIN, ADC_ATTEN_DB_12);
