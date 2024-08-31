@@ -30,6 +30,8 @@ void update_attribute()
     if (isZigBeeConnected)
     {
         // Рандомизация значения soilHumidityValue на ±100 единиц
+        //непонятно, когда девайс завис или нет - поэтому добавлю легкий шум
+        //да, это говно решение, но удаленно оно работает 100%
         int random_offset = (rand() % 201) - 100; // Генерация случайного числа от -100 до 100
         soilHumidityValue += random_offset;
         esp_zb_zcl_status_t state_tmp = esp_zb_zcl_set_attribute_val(SENSOR_ENDPOINT,
