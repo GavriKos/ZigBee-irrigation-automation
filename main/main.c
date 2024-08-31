@@ -29,6 +29,9 @@ void update_attribute()
 {
     if (isZigBeeConnected)
     {
+        // Рандомизация значения soilHumidityValue на ±100 единиц
+        int random_offset = (rand() % 201) - 100; // Генерация случайного числа от -100 до 100
+        soilHumidityValue += random_offset;
         esp_zb_zcl_status_t state_tmp = esp_zb_zcl_set_attribute_val(SENSOR_ENDPOINT,
                                                                      ESP_ZB_ZCL_CLUSTER_ID_REL_HUMIDITY_MEASUREMENT,
                                                                      ESP_ZB_ZCL_CLUSTER_SERVER_ROLE, ESP_ZB_ZCL_ATTR_REL_HUMIDITY_MEASUREMENT_VALUE_ID, &soilHumidityValue, false);
